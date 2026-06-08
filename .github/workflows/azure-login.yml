@@ -8,9 +8,8 @@ permissions:
   contents: read
  
 jobs:
-  test-login:
-    runs-on: 
-      group: use-github runners
+  login:
+    runs-on: ubuntu-latest
  
     environment: dev  
  
