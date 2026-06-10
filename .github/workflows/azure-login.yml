@@ -1,7 +1,16 @@
-name: Terraform Azure
+name: Terraform Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        type: choice
+        options:
+          - dev
+          - sit
+          - prod
 
 permissions:
   id-token: write
@@ -9,12 +18,16 @@ permissions:
 
 jobs:
   terraform:
+    name: Terraform
     runs-on: ubuntu-latest
-    environment: prod
+
+    # Dynamically select the GitHub environment
+    environment:
+      name: ${{ inputs.environment }}
 
     defaults:
       run:
-        working-directory: terraform
+        working-directory: ./terraform
 
     steps:
       - name: Checkout
@@ -30,6 +43,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Set ARM variables for OIDC
+        run: |
+          echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+          echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+
       - name: Terraform Init
         run: terraform init
 
@@ -37,7 +57,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -var="environment=${{ inputs.environment }}"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -var="environment=${{ inputs.environment }}" -auto-approve
