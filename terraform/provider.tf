@@ -20,7 +20,7 @@ terraform {
   backend "azurerm" {
 
     resource_group_name  = "rg-nusitccp-devops"
-    storage_account_name = "<storage-account>"
+    storage_account_name = "stnusitccptfstate"
     container_name       = "tfstate"
     key                  = "terraform.tfstate"
 
