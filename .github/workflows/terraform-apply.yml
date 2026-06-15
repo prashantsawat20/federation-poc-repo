@@ -10,33 +10,25 @@ permissions:
   id-token: write
 
 jobs:
-
-#############################################
-# DEV
-#############################################
+  #############################################
+  # DEV
+  #############################################
 
   terraform-dev:
-
     runs-on: ubuntu-latest
 
     environment: dev
 
-    defaults:
-      run:
-        working-directory: terraform
+    env:
+      ARM_USE_OIDC: true
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
-
-      - name: Set ARM variables for OIDC
-        run: |
-          echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-          echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         run: |
@@ -46,7 +38,7 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Terraform Plan
+      - name: Terraform Plan DEV
         run: |
           terraform plan \
             -var-file=env/dev.tfvars
@@ -57,34 +49,25 @@ jobs:
             -auto-approve \
             -var-file=env/dev.tfvars
 
-#############################################
-# TEST
-#############################################
+  #############################################
+  # TEST
+  #############################################
 
   terraform-test:
-
-    needs: terraform-dev
-
     runs-on: ubuntu-latest
 
     environment: test
 
-    defaults:
-      run:
-        working-directory: terraform
+    env:
+      ARM_USE_OIDC: true
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
-
-      - name: Set ARM variables for OIDC
-        run: |
-          echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-          echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         run: |
@@ -105,34 +88,25 @@ jobs:
             -auto-approve \
             -var-file=env/test.tfvars
 
-#############################################
-# PROD
-#############################################
+  #############################################
+  # PROD
+  #############################################
 
   terraform-prod:
-
-    needs: terraform-test
-
     runs-on: ubuntu-latest
 
     environment: prod
 
-    defaults:
-      run:
-        working-directory: terraform
+    env:
+      ARM_USE_OIDC: true
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
-
-      - name: Set ARM variables for OIDC
-        run: |
-          echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
-          echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         run: |
@@ -152,4 +126,3 @@ jobs:
           terraform apply \
             -auto-approve \
             -var-file=env/prod.tfvars
-            
