@@ -14,13 +14,11 @@ defaults:
     working-directory: terraform
 
 jobs:
-
-#############################################
-# DEV PLAN
-#############################################
+  #############################################
+  # DEV PLAN
+  #############################################
 
   plan-dev:
-
     runs-on: ubuntu-latest
 
     environment: dev
@@ -32,7 +30,6 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
@@ -63,11 +60,12 @@ jobs:
           terraform plan \
             -var-file=env/dev.tfvars
 
-#############################################
-# TEST PLAN
-#############################################
+  #############################################
+  # TEST PLAN
+  #############################################
 
   plan-test:
+    needs: plan-dev
 
     runs-on: ubuntu-latest
 
@@ -80,7 +78,6 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
@@ -91,6 +88,14 @@ jobs:
       #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
       #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
       #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Debug Test Environment
+        run: |
+          echo "Client ID exists: ${{ secrets.AZURE_CLIENT_ID != '' }}"
+          echo "Tenant ID exists: ${{ secrets.AZURE_TENANT_ID != '' }}"
+          echo "Subscription ID exists: ${{ secrets.AZURE_SUBSCRIPTION_ID != '' }}"
+          echo "ARM_USE_OIDC=$ARM_USE_OIDC"
+          echo "ARM_USE_AZUREAD=$ARM_USE_AZUREAD"
 
       - name: Terraform Init
         run: |
@@ -105,11 +110,12 @@ jobs:
           terraform plan \
             -var-file=env/test.tfvars
 
-#############################################
-# PROD PLAN
-#############################################
+  #############################################
+  # PROD PLAN
+  #############################################
 
   plan-prod:
+    needs: plan-test
 
     runs-on: ubuntu-latest
 
@@ -122,7 +128,6 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
